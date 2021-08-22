@@ -22,11 +22,12 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 client.connect(err => {
     const productsCollection = client.db("recapemajhon").collection("Products");
+    const ordersCollection = client.db("recapemajhon").collection("orders");
 
     //load all data form fakeData to database //complete C of the CRUD//
     app.post('/addProduct', (req, res) => {
         const products = req.body;
-        productsCollection.insertMany(products)
+        productsCollection.insertOne(products)
             .then(result => {
                 res.send(result.insertedIds)
                 console.log(result.insertedIds)
@@ -43,19 +44,30 @@ client.connect(err => {
 
     //load Single Products//
     app.get('/product/:key', (req, res) => {
-        productsCollection.find({key: req.params.key})//find single product by "using req.params.key" //
-        .toArray( (err, documents) => {
-            res.send(documents[0]);
-        })
+        productsCollection.find({ key: req.params.key })//find single product by "using req.params.key" //
+            .toArray((err, documents) => {
+                res.send(documents[0]);
+            })
     })
 
     //get/load product for review components//find by productKeys//
     app.post('/productsByKeys', (req, res) => {
         const productKeys = req.body;
-        productsCollection.find({key: {$in: productKeys}})
-        .toArray( (err, documents) => {
-            res.send(documents)
-        })
+        productsCollection.find({ key: { $in: productKeys } })
+            .toArray((err, documents) => {
+                res.send(documents)
+            })
+    })
+
+    //add order to database//
+    app.post('/addOrder', (req, res) => {
+        const orders = req.body;
+        ordersCollection.insertOne(orders)
+            .then(result => {
+                res.send(result.insertedId)
+                console.log(result.insertedId)
+                
+            })
     })
 });
 
